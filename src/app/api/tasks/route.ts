@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { addTask, getTasks, type Priority, type Status } from "@/lib/tasks";
+import { addTask, getTasks, setTaskStatus, type Priority, type Status } from "@/lib/tasks";
 
 const VALID_PRIORITIES: Priority[] = ["low", "medium", "high"];
 const VALID_STATUSES: Status[] = ["todo", "in_progress", "complete"];
@@ -34,4 +34,23 @@ export async function POST(req: NextRequest) {
 
   const task = await addTask({ title: body.title, dueDate, priority, category, status });
   return NextResponse.json({ task }, { status: 201 });
+}
+
+export async function PATCH(req: NextRequest) {
+  const auth = req.headers.get("authorization");
+  const expected = process.env.TASKS_API_TOKEN;
+  if (!expected || auth !== `Bearer ${expected}`) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const body = await req.json().catch(() => null);
+  if (!body || typeof body.id !== "string" || !body.id) {
+    return NextResponse.json({ error: "id is required" }, { status: 400 });
+  }
+  if (!VALID_STATUSES.includes(body.status)) {
+    return NextResponse.json({ error: "status must be one of: " + VALID_STATUSES.join(", ") }, { status: 400 });
+  }
+
+  await setTaskStatus(body.id, body.status);
+  return NextResponse.json({ ok: true });
 }
