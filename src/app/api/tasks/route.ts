@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { addTask, getTasks, setTaskStatus, type Priority, type Status } from "@/lib/tasks";
+import { addTask, deleteTask, getTasks, setTaskStatus, type Priority, type Status } from "@/lib/tasks";
 
 const VALID_PRIORITIES: Priority[] = ["low", "medium", "high"];
 const VALID_STATUSES: Status[] = ["todo", "in_progress", "complete"];
@@ -52,5 +52,21 @@ export async function PATCH(req: NextRequest) {
   }
 
   await setTaskStatus(body.id, body.status);
+  return NextResponse.json({ ok: true });
+}
+
+export async function DELETE(req: NextRequest) {
+  const auth = req.headers.get("authorization");
+  const expected = process.env.TASKS_API_TOKEN;
+  if (!expected || auth !== `Bearer ${expected}`) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const id = req.nextUrl.searchParams.get("id");
+  if (!id) {
+    return NextResponse.json({ error: "id query param is required" }, { status: 400 });
+  }
+
+  await deleteTask(id);
   return NextResponse.json({ ok: true });
 }
