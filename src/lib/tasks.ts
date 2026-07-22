@@ -129,6 +129,21 @@ export async function deleteTask(id: string): Promise<void> {
   await sql`DELETE FROM tasks WHERE id = ${id}`;
 }
 
+export async function editTask(
+  id: string,
+  input: { title: string; dueDate: string | null; priority: Priority; category: string | null }
+): Promise<void> {
+  const title = input.title.trim();
+  if (!title) return;
+  const category = input.category?.trim() || null;
+  await ensureTable();
+  await sql`
+    UPDATE tasks
+    SET title = ${title}, due_date = ${input.dueDate}, priority = ${input.priority}, category = ${category}
+    WHERE id = ${id}
+  `;
+}
+
 export async function renameTask(id: string, title: string): Promise<void> {
   const trimmed = title.trim();
   if (!trimmed) return;

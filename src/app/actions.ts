@@ -5,9 +5,15 @@ import {
   addTask,
   cycleTaskStatus,
   deleteTask,
+  editTask,
   renameTask,
   type Priority,
 } from "@/lib/tasks";
+
+function revalidateViews() {
+  revalidatePath("/");
+  revalidatePath("/calendar");
+}
 
 export async function addTaskAction(formData: FormData) {
   const title = formData.get("title");
@@ -22,20 +28,28 @@ export async function addTaskAction(formData: FormData) {
     priority: (typeof priority === "string" ? priority : "medium") as Priority,
     category: typeof category === "string" ? category : null,
   });
-  revalidatePath("/");
+  revalidateViews();
 }
 
 export async function cycleStatusAction(id: string) {
   await cycleTaskStatus(id);
-  revalidatePath("/");
+  revalidateViews();
 }
 
 export async function deleteTaskAction(id: string) {
   await deleteTask(id);
-  revalidatePath("/");
+  revalidateViews();
 }
 
 export async function renameTaskAction(id: string, title: string) {
   await renameTask(id, title);
-  revalidatePath("/");
+  revalidateViews();
+}
+
+export async function editTaskAction(
+  id: string,
+  input: { title: string; dueDate: string | null; priority: Priority; category: string | null }
+) {
+  await editTask(id, input);
+  revalidateViews();
 }
