@@ -64,7 +64,7 @@ export default async function CalendarPage({
 
   return (
     <div className="flex min-h-screen justify-center bg-zinc-50 px-8 py-8 font-sans dark:bg-zinc-950">
-      <div className="w-full max-w-4xl">
+      <div className="w-full max-w-7xl">
         <div className="mb-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <Link
@@ -73,7 +73,7 @@ export default async function CalendarPage({
             >
               ← List view
             </Link>
-            <h1 className="text-xl font-bold text-black dark:text-zinc-50">
+            <h1 className="text-2xl font-bold text-black dark:text-zinc-50">
               {monthLabel(year, month)}
             </h1>
           </div>

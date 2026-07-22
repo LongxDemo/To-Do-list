@@ -18,7 +18,7 @@ const STATUS_CHIP: Record<Task["status"], string> = {
 };
 
 const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-const MAX_VISIBLE_PER_DAY = 3;
+const MAX_VISIBLE_PER_DAY = 5;
 
 export type CalendarCell = { dateStr: string | null; day: number | null; tasks: Task[] };
 
@@ -31,7 +31,7 @@ export function CalendarGrid({ cells, todayStr }: { cells: CalendarCell[]; today
         {WEEKDAYS.map((wd) => (
           <div
             key={wd}
-            className="px-2 py-2 text-center text-[11px] font-semibold uppercase tracking-wide text-zinc-400 dark:text-zinc-500"
+            className="px-2 py-3 text-center text-xs font-semibold uppercase tracking-wide text-zinc-400 dark:text-zinc-500"
           >
             {wd}
           </div>
@@ -47,14 +47,14 @@ export function CalendarGrid({ cells, todayStr }: { cells: CalendarCell[]; today
           return (
             <div
               key={i}
-              className={`min-h-[6.5rem] border-b border-r border-black/5 p-1.5 dark:border-white/5 ${
+              className={`min-h-[10rem] border-b border-r border-black/5 p-2 dark:border-white/5 ${
                 cell.day === null ? "bg-zinc-50/50 dark:bg-zinc-950/50" : ""
               }`}
             >
               {cell.day !== null && (
                 <>
                   <div
-                    className={`mb-1 flex h-5 w-5 items-center justify-center rounded-full text-xs font-medium ${
+                    className={`mb-1.5 flex h-7 w-7 items-center justify-center rounded-full text-sm font-medium ${
                       isToday ? "bg-violet-600 text-white" : "text-zinc-500 dark:text-zinc-400"
                     }`}
                   >
@@ -67,16 +67,16 @@ export function CalendarGrid({ cells, todayStr }: { cells: CalendarCell[]; today
                         key={task.id}
                         title={task.title}
                         onClick={() => setSelectedTask(task)}
-                        className={`flex w-full items-center gap-1 truncate rounded px-1.5 py-0.5 text-left text-[10px] font-medium transition-transform active:scale-95 ${STATUS_CHIP[task.status]}`}
+                        className={`flex w-full items-center gap-1.5 truncate rounded px-2 py-1 text-left text-xs font-medium transition-transform active:scale-95 ${STATUS_CHIP[task.status]}`}
                       >
                         <span
-                          className={`h-1.5 w-1.5 shrink-0 rounded-full ${STATUS_DOT[task.status]}`}
+                          className={`h-2 w-2 shrink-0 rounded-full ${STATUS_DOT[task.status]}`}
                         />
                         <span className="truncate">{task.title}</span>
                       </button>
                     ))}
                     {overflow > 0 && (
-                      <div className="px-1.5 text-[10px] text-zinc-400 dark:text-zinc-500">
+                      <div className="px-2 text-xs text-zinc-400 dark:text-zinc-500">
                         +{overflow} more
                       </div>
                     )}
