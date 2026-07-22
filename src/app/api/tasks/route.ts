@@ -1,8 +1,19 @@
 import { NextRequest, NextResponse } from "next/server";
-import { addTask, type Priority, type Status } from "@/lib/tasks";
+import { addTask, getTasks, type Priority, type Status } from "@/lib/tasks";
 
 const VALID_PRIORITIES: Priority[] = ["low", "medium", "high"];
 const VALID_STATUSES: Status[] = ["todo", "in_progress", "complete"];
+
+export async function GET(req: NextRequest) {
+  const auth = req.headers.get("authorization");
+  const expected = process.env.TASKS_API_TOKEN;
+  if (!expected || auth !== `Bearer ${expected}`) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const tasks = await getTasks();
+  return NextResponse.json({ tasks });
+}
 
 export async function POST(req: NextRequest) {
   const auth = req.headers.get("authorization");
