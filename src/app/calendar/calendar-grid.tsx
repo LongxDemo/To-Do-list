@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import type { Task } from "@/lib/tasks";
+import { khmerHolidayOn } from "@/lib/khmer-holidays";
 import { TaskEditModal } from "../task-edit-modal";
 
 const STATUS_DOT: Record<Task["status"], string> = {
@@ -41,6 +42,7 @@ export function CalendarGrid({ cells, todayStr }: { cells: CalendarCell[]; today
       <div className="grid grid-cols-7">
         {cells.map((cell, i) => {
           const isToday = cell.dateStr === todayStr;
+          const holiday = cell.dateStr ? khmerHolidayOn(cell.dateStr) : null;
           const visible = cell.tasks.slice(0, MAX_VISIBLE_PER_DAY);
           const overflow = cell.tasks.length - visible.length;
 
@@ -48,17 +50,31 @@ export function CalendarGrid({ cells, todayStr }: { cells: CalendarCell[]; today
             <div
               key={i}
               className={`min-h-[10rem] border-b border-r border-black/5 p-2 dark:border-white/5 ${
-                cell.day === null ? "bg-zinc-50/50 dark:bg-zinc-950/50" : ""
+                cell.day === null
+                  ? "bg-zinc-50/50 dark:bg-zinc-950/50"
+                  : holiday
+                    ? "bg-rose-50/70 dark:bg-rose-500/5"
+                    : ""
               }`}
             >
               {cell.day !== null && (
                 <>
-                  <div
-                    className={`mb-1.5 flex h-7 w-7 items-center justify-center rounded-full text-sm font-medium ${
-                      isToday ? "bg-violet-600 text-white" : "text-zinc-500 dark:text-zinc-400"
-                    }`}
-                  >
-                    {cell.day}
+                  <div className="mb-1.5 flex items-center gap-1.5">
+                    <div
+                      className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-sm font-medium ${
+                        isToday ? "bg-violet-600 text-white" : "text-zinc-500 dark:text-zinc-400"
+                      }`}
+                    >
+                      {cell.day}
+                    </div>
+                    {holiday && (
+                      <span
+                        title={holiday}
+                        className="truncate text-[10px] font-semibold uppercase tracking-wide text-rose-600 dark:text-rose-400"
+                      >
+                        {holiday}
+                      </span>
+                    )}
                   </div>
                   <div className="flex flex-col gap-1">
                     {visible.map((task) => (
