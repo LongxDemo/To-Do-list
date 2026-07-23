@@ -1,8 +1,23 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
 import type { Status, Task } from "@/lib/tasks";
-import { cycleStatusAction, deleteTaskAction, renameTaskAction } from "./actions";
+import {
+  cycleStatusAction,
+  deleteTaskAction,
+  renameTaskAction,
+  startTimerAction,
+  stopTimerAction,
+} from "./actions";
+
+function formatDuration(totalSeconds: number) {
+  const s = Math.max(0, Math.round(totalSeconds));
+  const h = Math.floor(s / 3600);
+  const m = Math.floor((s % 3600) / 60);
+  if (h === 0 && m === 0) return "< 1m";
+  if (h === 0) return `${m}m`;
+  return `${h}h ${m}m`;
+}
 
 const STATUS_STYLE: Record<Status, { label: string; className: string }> = {
   todo: {
@@ -47,13 +62,37 @@ function formatDueDate(dueDate: string | null, complete: boolean) {
   return { label, overdue: diffDays < 0 && !complete };
 }
 
-export function TaskRow({ task }: { task: Task }) {
+export function TaskRow({
+  task,
+  totalSeconds,
+  isTiming,
+  activeStartedAt,
+}: {
+  task: Task;
+  totalSeconds: number;
+  isTiming: boolean;
+  activeStartedAt: string | null;
+}) {
   const [editing, setEditing] = useState(false);
   const [title, setTitle] = useState(task.title);
   const [isPending, startTransition] = useTransition();
+  const [liveSeconds, setLiveSeconds] = useState(0);
+
+  useEffect(() => {
+    if (!isTiming || !activeStartedAt) {
+      setLiveSeconds(0);
+      return;
+    }
+    const startedMs = new Date(activeStartedAt).getTime();
+    const tick = () => setLiveSeconds((Date.now() - startedMs) / 1000);
+    tick();
+    const interval = setInterval(tick, 1000);
+    return () => clearInterval(interval);
+  }, [isTiming, activeStartedAt]);
 
   const due = formatDueDate(task.dueDate, task.status === "complete");
   const statusStyle = STATUS_STYLE[task.status];
+  const displaySeconds = isTiming ? totalSeconds + liveSeconds : totalSeconds;
 
   function commitRename() {
     setEditing(false);
@@ -69,7 +108,7 @@ export function TaskRow({ task }: { task: Task }) {
 
   return (
     <div
-      className={`group grid grid-cols-[7.5rem_1fr_9rem_5rem_5rem_2rem] items-center gap-3 border-b border-black/5 px-3 py-2.5 transition-colors hover:bg-violet-50/60 dark:border-white/5 dark:hover:bg-violet-500/5 ${
+      className={`group grid grid-cols-[7.5rem_1fr_9rem_5rem_5rem_7rem_2rem] items-center gap-3 border-b border-black/5 px-3 py-2.5 transition-colors hover:bg-violet-50/60 dark:border-white/5 dark:hover:bg-violet-500/5 ${
         isPending ? "opacity-60" : ""
       }`}
       style={{ animation: "task-in 0.25s ease-out" }}
@@ -135,6 +174,35 @@ export function TaskRow({ task }: { task: Task }) {
         }`}
       >
         {due ? (due.overdue ? "Overdue" : due.label) : ""}
+      </div>
+
+      <div className="flex items-center gap-1.5">
+        <button
+          type="button"
+          onClick={() =>
+            startTransition(() => (isTiming ? stopTimerAction() : startTimerAction(task.id)))
+          }
+          aria-label={isTiming ? "Stop timer" : "Start timer"}
+          title={isTiming ? "Stop timer" : "Start timer"}
+          className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[10px] transition-transform active:scale-95 ${
+            isTiming
+              ? "bg-red-500 text-white"
+              : "bg-zinc-200 text-zinc-500 hover:bg-violet-100 hover:text-violet-700 dark:bg-zinc-700 dark:text-zinc-400 dark:hover:bg-violet-500/20 dark:hover:text-violet-300"
+          }`}
+        >
+          {isTiming ? "■" : "▶"}
+        </button>
+        <span
+          className={`text-xs tabular-nums ${
+            isTiming
+              ? "font-semibold text-red-500"
+              : displaySeconds > 0
+                ? "text-zinc-500 dark:text-zinc-400"
+                : "text-zinc-300 dark:text-zinc-600"
+          }`}
+        >
+          {formatDuration(displaySeconds)}
+        </span>
       </div>
 
       <button

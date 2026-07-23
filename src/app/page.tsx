@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { getTasks, type Task } from "@/lib/tasks";
+import { getActiveEntry, getTotalsByTask } from "@/lib/time";
 import { addTaskAction } from "./actions";
 import { TaskRow } from "./task-row";
 
@@ -60,7 +61,11 @@ export default async function Home({
     : "all";
   const category = rawCategory || null;
 
-  const tasks = await getTasks();
+  const [tasks, timeTotals, activeEntry] = await Promise.all([
+    getTasks(),
+    getTotalsByTask(),
+    getActiveEntry(),
+  ]);
   const total = tasks.length;
   const done = tasks.filter((t) => t.status === "complete").length;
   const pct = total === 0 ? 0 : Math.round((done / total) * 100);
@@ -273,12 +278,13 @@ export default async function Home({
           </form>
 
           {total > 0 && (
-            <div className="grid grid-cols-[7.5rem_1fr_9rem_5rem_5rem_2rem] gap-3 border-b border-black/10 px-3 pb-2 text-[11px] font-semibold uppercase tracking-wide text-zinc-400 dark:border-white/10 dark:text-zinc-500">
+            <div className="grid grid-cols-[7.5rem_1fr_9rem_5rem_5rem_7rem_2rem] gap-3 border-b border-black/10 px-3 pb-2 text-[11px] font-semibold uppercase tracking-wide text-zinc-400 dark:border-white/10 dark:text-zinc-500">
               <span>Status</span>
               <span>Task</span>
               <span>Category</span>
               <span>Priority</span>
               <span>Due</span>
+              <span>Time</span>
               <span />
             </div>
           )}
@@ -289,7 +295,15 @@ export default async function Home({
                 {total === 0 ? "No tasks yet — add one above." : "Nothing here."}
               </p>
             ) : (
-              visible.map((task) => <TaskRow key={task.id} task={task} />)
+              visible.map((task) => (
+                <TaskRow
+                  key={task.id}
+                  task={task}
+                  totalSeconds={timeTotals[task.id] ?? 0}
+                  isTiming={activeEntry?.taskId === task.id}
+                  activeStartedAt={activeEntry?.taskId === task.id ? activeEntry.startedAt : null}
+                />
+              ))
             )}
           </div>
         </div>

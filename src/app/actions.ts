@@ -9,6 +9,7 @@ import {
   renameTask,
   type Priority,
 } from "@/lib/tasks";
+import { startTimer, stopActiveTimer } from "@/lib/time";
 
 function revalidateViews() {
   revalidatePath("/");
@@ -51,5 +52,15 @@ export async function editTaskAction(
   input: { title: string; dueDate: string | null; priority: Priority; category: string | null }
 ) {
   await editTask(id, input);
+  revalidateViews();
+}
+
+export async function startTimerAction(id: string) {
+  await startTimer(id);
+  revalidateViews();
+}
+
+export async function stopTimerAction() {
+  await stopActiveTimer();
   revalidateViews();
 }
