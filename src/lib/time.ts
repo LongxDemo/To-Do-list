@@ -35,6 +35,12 @@ export async function stopActiveTimer(): Promise<void> {
   await sql`UPDATE time_entries SET ended_at = now() WHERE ended_at IS NULL`;
 }
 
+// For backdating work that happened without the live timer running.
+export async function logTimeEntry(taskId: string, startedAt: string, endedAt: string): Promise<void> {
+  await ensureTable();
+  await sql`INSERT INTO time_entries (id, task_id, started_at, ended_at) VALUES (${randomUUID()}, ${taskId}, ${startedAt}, ${endedAt})`;
+}
+
 export async function getActiveEntry(): Promise<ActiveEntry> {
   await ensureTable();
   const rows = (await sql`
