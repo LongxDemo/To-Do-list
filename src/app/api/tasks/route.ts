@@ -1,8 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import { addTask, deleteTask, getTasks, setTaskDueDate, setTaskStatus, type Priority, type Status } from "@/lib/tasks";
 
 const VALID_PRIORITIES: Priority[] = ["low", "medium", "high"];
 const VALID_STATUSES: Status[] = ["todo", "in_progress", "complete"];
+
+function revalidateViews() {
+  revalidatePath("/");
+  revalidatePath("/calendar");
+}
 
 export async function GET(req: NextRequest) {
   const auth = req.headers.get("authorization");
@@ -33,6 +39,7 @@ export async function POST(req: NextRequest) {
   const category = typeof body.category === "string" && body.category.trim() ? body.category.trim() : null;
 
   const task = await addTask({ title: body.title, dueDate, priority, category, status });
+  revalidateViews();
   return NextResponse.json({ task }, { status: 201 });
 }
 
@@ -62,6 +69,7 @@ export async function PATCH(req: NextRequest) {
 
   if (hasStatus) await setTaskStatus(body.id, body.status);
   if (hasDueDate) await setTaskDueDate(body.id, body.dueDate);
+  revalidateViews();
   return NextResponse.json({ ok: true });
 }
 
@@ -78,5 +86,6 @@ export async function DELETE(req: NextRequest) {
   }
 
   await deleteTask(id);
+  revalidateViews();
   return NextResponse.json({ ok: true });
 }

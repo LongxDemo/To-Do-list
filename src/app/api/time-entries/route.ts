@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import { getActiveEntry, getTotalsByTask, logTimeEntry, startTimer, stopActiveTimer } from "@/lib/time";
 
 function authorized(req: NextRequest) {
@@ -43,5 +44,6 @@ export async function POST(req: NextRequest) {
     await logTimeEntry(body.taskId, body.startedAt, body.endedAt);
   }
 
+  revalidatePath("/");
   return NextResponse.json({ ok: true });
 }
