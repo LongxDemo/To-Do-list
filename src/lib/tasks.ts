@@ -124,6 +124,11 @@ export async function setTaskStatus(id: string, status: Status): Promise<void> {
   await sql`UPDATE tasks SET status = ${status}, completed = ${status === "complete"} WHERE id = ${id}`;
 }
 
+export async function setTaskDueDate(id: string, dueDate: string | null): Promise<void> {
+  await ensureTable();
+  await sql`UPDATE tasks SET due_date = ${dueDate} WHERE id = ${id}`;
+}
+
 export async function deleteTask(id: string): Promise<void> {
   await ensureTable();
   await sql`DELETE FROM tasks WHERE id = ${id}`;

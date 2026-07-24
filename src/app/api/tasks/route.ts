@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { addTask, deleteTask, getTasks, setTaskStatus, type Priority, type Status } from "@/lib/tasks";
+import { addTask, deleteTask, getTasks, setTaskDueDate, setTaskStatus, type Priority, type Status } from "@/lib/tasks";
 
 const VALID_PRIORITIES: Priority[] = ["low", "medium", "high"];
 const VALID_STATUSES: Status[] = ["todo", "in_progress", "complete"];
@@ -47,11 +47,21 @@ export async function PATCH(req: NextRequest) {
   if (!body || typeof body.id !== "string" || !body.id) {
     return NextResponse.json({ error: "id is required" }, { status: 400 });
   }
-  if (!VALID_STATUSES.includes(body.status)) {
+
+  const hasStatus = body.status !== undefined;
+  const hasDueDate = body.dueDate !== undefined;
+  if (!hasStatus && !hasDueDate) {
+    return NextResponse.json({ error: "status or dueDate is required" }, { status: 400 });
+  }
+  if (hasStatus && !VALID_STATUSES.includes(body.status)) {
     return NextResponse.json({ error: "status must be one of: " + VALID_STATUSES.join(", ") }, { status: 400 });
   }
+  if (hasDueDate && body.dueDate !== null && typeof body.dueDate !== "string") {
+    return NextResponse.json({ error: "dueDate must be a string or null" }, { status: 400 });
+  }
 
-  await setTaskStatus(body.id, body.status);
+  if (hasStatus) await setTaskStatus(body.id, body.status);
+  if (hasDueDate) await setTaskDueDate(body.id, body.dueDate);
   return NextResponse.json({ ok: true });
 }
 
